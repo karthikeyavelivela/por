@@ -1,0 +1,297 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b0a08;
+  --surface: #161310;
+  --surface-2: #1d1915;
+  --line: rgba(242, 239, 233, 0.08);
+  --line-strong: rgba(242, 239, 233, 0.16);
+  --ink: #f2efe9;
+  --muted: #9a938a;
+  --orange: #ff6b2b;
+  --teal: #17b8a6;
+  --grad: linear-gradient(100deg, #ff6b2b 0%, #ff9d5c 45%, #17b8a6 100%);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-2: cubic-bezier(0.76, 0, 0.24, 1);
+  --radius: 22px;
+
+  --glass-bg: rgba(242, 239, 233, 0.04);
+  --glass-inset: rgba(242, 239, 233, 0.05);
+  --nav-bg: rgba(11, 10, 8, 0.65);
+  --overlay-bg: rgba(11, 10, 8, 0.92);
+  --grid-line: rgba(242, 239, 233, 0.035);
+  --grain-opacity: 0.045;
+}
+
+[data-theme="light"] {
+  --bg: #f4f1ea;
+  --surface: #fbf9f4;
+  --surface-2: #ebe6db;
+  --line: rgba(23, 19, 16, 0.09);
+  --line-strong: rgba(23, 19, 16, 0.2);
+  --ink: #171310;
+  --muted: #6e675e;
+
+  --glass-bg: rgba(23, 19, 16, 0.04);
+  --glass-inset: rgba(255, 255, 255, 0.6);
+  --nav-bg: rgba(244, 241, 234, 0.7);
+  --overlay-bg: rgba(244, 241, 234, 0.94);
+  --grid-line: rgba(23, 19, 16, 0.05);
+  --grain-opacity: 0.03;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-orange: var(--orange);
+  --color-teal: var(--teal);
+
+  --font-display: "Clash Display", system-ui, sans-serif;
+  --font-sans: "Satoshi", system-ui, sans-serif;
+
+  --radius-panel: 22px;
+
+  --animate-marquee: marquee 28s linear infinite;
+  --animate-marquee-slow: marquee 52s linear infinite;
+  --animate-blob-a: blob-a 30s ease-in-out infinite alternate;
+  --animate-blob-b: blob-b 36s ease-in-out infinite alternate;
+  --animate-dot-pulse: dot-pulse 2.2s var(--ease) infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes blob-a {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(-14vw, 12vh) scale(1.18); }
+  }
+  @keyframes blob-b {
+    from { transform: translate(0, 0) scale(1.1); }
+    to { transform: translate(12vw, -10vh) scale(0.95); }
+  }
+  @keyframes dot-pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    70%, 100% { transform: scale(2.8); opacity: 0; }
+  }
+}
+
+html {
+  color-scheme: dark;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-2) var(--bg);
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--muted);
+  font-family: "Satoshi", system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--orange);
+  color: var(--bg);
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-2);
+  border-radius: 8px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--orange);
+}
+
+:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+h1, h2, h3, h4 {
+  font-family: "Clash Display", system-ui, sans-serif;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------- typography helpers ---------- */
+
+.t-hero {
+  font-family: "Clash Display", system-ui, sans-serif;
+  font-size: clamp(3.2rem, 11vw, 9.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-weight: 600;
+}
+
+.t-title {
+  font-family: "Clash Display", system-ui, sans-serif;
+  font-size: clamp(2.2rem, 5.5vw, 4.8rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+.t-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-weight: 500;
+}
+
+.t-grad {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.t-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--line-strong);
+}
+
+/* ---------- surfaces ---------- */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 var(--glass-inset);
+}
+
+body {
+  transition: background-color 0.5s var(--ease), color 0.5s var(--ease);
+}
+
+/* top-lit gradient hairline, shown on hover */
+.toplit {
+  position: relative;
+}
+.toplit::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: var(--grad);
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+}
+.toplit:hover::before {
+  opacity: 1;
+}
+
+/* animated underline draw */
+.u-draw {
+  position: relative;
+}
+.u-draw::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.5s var(--ease);
+}
+.u-draw:hover::after,
+.u-draw:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* arrow-hop hover for social links */
+.arrow-hop .arrow {
+  display: inline-block;
+  transition: transform 0.4s var(--ease);
+}
+.arrow-hop:hover .arrow {
+  transform: translate(4px, -4px);
+}
+
+/* reveal system base state — GSAP animates these in */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(36px);
+}
+.no-js [data-reveal],
+[data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* line-mask reveal wrappers */
+.mask-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.mask-line > span {
+  display: block;
+  transform: translateY(115%);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+  .mask-line > span {
+    transform: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* hide native cursor when custom cursor active */
+@media (hover: hover) and (pointer: fine) {
+  body.has-cursor,
+  body.has-cursor a,
+  body.has-cursor button,
+  body.has-cursor [role="button"] {
+    cursor: none;
+  }
+}
