@@ -3,7 +3,7 @@ import RevealText from "@/components/ui/RevealText";
 import Timeline from "@/components/sections/Timeline";
 import SkillsGrid from "@/components/sections/SkillsGrid";
 import Button from "@/components/ui/Button";
-import { LogoMark } from "@/components/ui/Logo";
+import Logo from "@/components/ui/Logo";
 
 export const metadata: Metadata = {
   title: "About",
@@ -58,8 +58,8 @@ export default function AboutPage() {
               <p data-reveal data-delay="0.24">
                 The offensive side never stops: I hunt on HackerOne, and the
                 recon workflow from that hunting became SentinelX, my
-                open-source OSINT CLI. B.Tech CSE at KL University, Vijayawada
-                — 9.2 CGPA, Class of 2027.
+                open-source OSINT CLI. B.Tech CSE at KL University — 9.2 CGPA,
+                Class of 2027.
               </p>
             </div>
           </div>
@@ -88,11 +88,11 @@ export default function AboutPage() {
                     "radial-gradient(ellipse 80% 60% at 30% 20%, rgba(255,107,43,0.12), transparent 60%)",
                 }}
               />
-              <LogoMark className="h-28 w-28 opacity-15" />
+              <Logo outlined className="text-8xl opacity-40" />
             </div>
           </div>
           <p data-reveal data-delay="0.3" className="t-label mt-4 text-(--muted)">
-            Vijayawada, India — IST
+            Open to opportunities — IST
           </p>
         </div>
       </div>

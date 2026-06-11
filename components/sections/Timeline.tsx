@@ -31,7 +31,7 @@ const ENTRIES = [
     role: "B.Tech CSE — 9.2 CGPA",
     period: "2023 — 2027",
     detail:
-      "Final-year Computer Science at KL University, Vijayawada. Class of 2027.",
+      "Final-year Computer Science at KL University. Class of 2027.",
   },
 ];
 

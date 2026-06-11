@@ -20,7 +20,7 @@ export default function Footer() {
     <footer className="relative border-t" style={{ borderColor: "var(--line)" }}>
       <div className="mx-auto flex max-w-[1400px] flex-col gap-12 px-6 py-16 md:flex-row md:items-end md:justify-between md:px-10">
         <div>
-          <Logo className="h-10 w-10" />
+          <Logo className="text-3xl" />
           <p className="mt-4 max-w-xs text-sm text-(--muted)">
             The engineer who builds the product — and the attacker who tries to
             break it.
@@ -64,7 +64,7 @@ export default function Footer() {
 
         <div className="flex flex-col items-start gap-3 md:items-end">
           <p className="t-label text-(--muted)" suppressHydrationWarning>
-            Vijayawada, IN — {time} IST
+            {time} IST
           </p>
           <button
             onClick={toTop}

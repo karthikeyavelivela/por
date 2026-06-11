@@ -20,12 +20,10 @@ export default function OGImage() {
           fontFamily: "sans-serif",
         }}
       >
-        <svg width="84" height="84" viewBox="0 0 64 64" fill="none">
-          <path d="M16 10 V54" stroke="#F2EFE9" strokeWidth="6.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M16 32 L36 10" stroke="#F2EFE9" strokeWidth="6.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M16 32 L36 54" stroke="#F2EFE9" strokeWidth="6.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M36 54 L52 10" stroke="#FF6B2B" strokeWidth="6.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <div style={{ display: "flex", alignItems: "baseline", fontSize: 54, fontWeight: 700 }}>
+          <span style={{ color: "#F2EFE9" }}>kv</span>
+          <span style={{ color: "#FF6B2B" }}>/</span>
+        </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div
@@ -48,7 +46,7 @@ export default function OGImage() {
           <div style={{ color: "#9A938A", fontSize: 23 }}>
             FYRO · GuidePay · LLM Red Team · SentinelX · PETZU
           </div>
-          <div style={{ color: "#9A938A", fontSize: 23 }}>Vijayawada, IN</div>
+          <div style={{ color: "#9A938A", fontSize: 23 }}>Open to opportunities</div>
         </div>
       </div>
     ),

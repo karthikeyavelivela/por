@@ -4,18 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
 import { markAppReady } from "@/lib/ready";
 import { prefersReducedMotion } from "@/lib/utils";
-import { LogoMark } from "@/components/ui/Logo";
 
 /**
- * First-visit preloader: monogram strokes draw in, counter runs 0→100 over a
- * thin gradient bar, then the whole overlay sweeps up as a curtain.
- * Gated by sessionStorage; total under 1.8s.
+ * First-visit preloader: the full name rises out of a mask word by word,
+ * a hairline fills underneath with the counter riding its right edge,
+ * then the whole screen lifts away with a softening bottom curve.
  */
 export default function Preloader() {
   const [active, setActive] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const svgWrapRef = useRef<HTMLDivElement>(null);
-  const barRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const wordsRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
   const countRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -24,11 +24,9 @@ export default function Preloader() {
       markAppReady();
       return;
     }
-
     let cancelled = false;
     const raf = requestAnimationFrame(() => {
-      if (cancelled) return;
-      setActive(true);
+      if (!cancelled) setActive(true);
     });
     return () => {
       cancelled = true;
@@ -41,7 +39,7 @@ export default function Preloader() {
 
     document.documentElement.style.overflow = "hidden";
     const counter = { v: 0 };
-    const paths = svgWrapRef.current?.querySelectorAll("path") ?? [];
+    const words = wordsRef.current?.querySelectorAll("[data-word]") ?? [];
 
     const tl = gsap.timeline({
       onComplete: () => {
@@ -53,29 +51,35 @@ export default function Preloader() {
     });
 
     tl.fromTo(
-      paths,
-      { strokeDashoffset: 1 },
-      { strokeDashoffset: 0, duration: 0.55, ease: "power2.inOut", stagger: 0.07 },
+      words,
+      { y: 0, yPercent: 120 },
+      { yPercent: 0, duration: 0.85, ease: "expo.out", stagger: 0.12 },
       0
     )
       .to(
         counter,
         {
           v: 100,
-          duration: 0.9,
+          duration: 1.05,
           ease: "power2.inOut",
           onUpdate: () => {
-            if (countRef.current) countRef.current.textContent = String(Math.round(counter.v));
-            if (barRef.current) barRef.current.style.transform = `scaleX(${counter.v / 100})`;
+            if (countRef.current) {
+              countRef.current.textContent = `${String(Math.round(counter.v)).padStart(3, "0")}%`;
+            }
+            if (lineRef.current) {
+              lineRef.current.style.transform = `scaleX(${counter.v / 100})`;
+            }
           },
         },
-        0.1
+        0.15
       )
+      .to(words, { yPercent: -120, duration: 0.5, ease: "power3.in", stagger: 0.05 }, ">-0.05")
       .to(
-        rootRef.current,
-        { yPercent: -100, duration: 0.65, ease: "power4.inOut" },
-        ">-0.05"
-      );
+        panelRef.current,
+        { borderBottomLeftRadius: "50% 12%", borderBottomRightRadius: "50% 12%", duration: 0.3 },
+        "<"
+      )
+      .to(rootRef.current, { yPercent: -100, duration: 0.7, ease: "power4.inOut" }, ">-0.15");
 
     return () => {
       tl.kill();
@@ -86,28 +90,54 @@ export default function Preloader() {
   if (!active) return null;
 
   return (
-    <div
-      ref={rootRef}
-      aria-hidden
-      className="fixed inset-0 z-10000 flex items-center justify-center"
-      style={{ background: "var(--bg)" }}
-    >
-      <div ref={svgWrapRef} className="flex flex-col items-center">
-        <LogoMark withDash className="h-16 w-16" />
-        <div className="mt-8 h-px w-48 overflow-hidden rounded-full" style={{ background: "var(--line)" }}>
-          <div
-            ref={barRef}
-            className="h-full w-full origin-left scale-x-0"
-            style={{ background: "var(--grad)" }}
-          />
+    <div ref={rootRef} aria-hidden className="fixed inset-0 z-10000">
+      <div
+        ref={panelRef}
+        className="flex h-full w-full flex-col items-center justify-center overflow-hidden"
+        style={{ background: "var(--bg)" }}
+      >
+        <p className="t-label mb-6 text-(--muted)">Portfolio — 2026</p>
+
+        <div ref={wordsRef} className="flex gap-[0.35em] overflow-hidden px-4 pb-2">
+          {["Karthikeya", "Velivela"].map((w, i) => (
+            <span
+              key={w}
+              data-word
+              className="block font-display font-semibold leading-none tracking-tight will-change-transform"
+              style={{
+                fontFamily: "Clash Display, system-ui, sans-serif",
+                fontSize: "clamp(2.2rem, 7vw, 4.8rem)",
+                letterSpacing: "-0.03em",
+                color: i === 0 ? "var(--ink)" : "transparent",
+                ...(i === 1
+                  ? {
+                      background: "var(--grad)",
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                    }
+                  : {}),
+              }}
+            >
+              {w}
+            </span>
+          ))}
         </div>
-        <span
-          ref={countRef}
-          className="t-label mt-4 tabular-nums"
-          style={{ color: "var(--muted)" }}
-        >
-          0
-        </span>
+
+        <div className="mt-8 flex w-[min(420px,72vw)] items-center gap-4">
+          <div className="h-px flex-1 overflow-hidden rounded-full" style={{ background: "var(--line)" }}>
+            <div
+              ref={lineRef}
+              className="h-full w-full origin-left scale-x-0"
+              style={{ background: "var(--grad)" }}
+            />
+          </div>
+          <span
+            ref={countRef}
+            className="t-label w-12 text-right tabular-nums text-(--muted)"
+          >
+            000%
+          </span>
+        </div>
       </div>
     </div>
   );

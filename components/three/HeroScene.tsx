@@ -23,15 +23,19 @@ function Particles({ count }: { count: number }) {
     const rand = mulberry32(count * 7919);
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      arr[i * 3] = (rand() - 0.5) * 12;
-      arr[i * 3 + 1] = (rand() - 0.5) * 9;
-      arr[i * 3 + 2] = (rand() - 0.5) * 6;
+      arr[i * 3] = (rand() - 0.5) * 18;
+      arr[i * 3 + 1] = (rand() - 0.5) * 11;
+      arr[i * 3 + 2] = (rand() - 0.5) * 7 - 1;
     }
     return arr;
   }, [count]);
 
-  useFrame((_, delta) => {
-    if (ref.current) ref.current.rotation.y += delta * 0.014;
+  useFrame((state, delta) => {
+    if (!ref.current) return;
+    ref.current.rotation.y += delta * 0.012;
+    // particles drift opposite the pointer for depth
+    ref.current.position.x = -state.pointer.x * 0.4;
+    ref.current.position.y = -state.pointer.y * 0.25;
   });
 
   return (
@@ -39,42 +43,52 @@ function Particles({ count }: { count: number }) {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial size={0.024} color="#ff9d5c" transparent opacity={0.5} sizeAttenuation />
+      <pointsMaterial size={0.025} color="#ff9d5c" transparent opacity={0.45} sizeAttenuation />
     </points>
   );
 }
 
-/** Polished chrome torus knot — mirrors the orange/teal lightformers.
- *  (Physical material, not transmission: no FBO dark-square artifact on
- *  light theme, and far cheaper on mobile GPUs.) */
-function GlassKnot({ animate, mobile }: { animate: boolean; mobile: boolean }) {
+/**
+ * Chrome torus knot centered behind the hero type — follows the cursor:
+ * the whole group eases toward the pointer and tilts into the motion.
+ */
+function ChromeKnot({ animate, mobile }: { animate: boolean; mobile: boolean }) {
+  const group = useRef<THREE.Group>(null);
   const mesh = useRef<THREE.Mesh>(null);
-  const pointer = useRef({ x: 0, y: 0 });
+  const eased = useRef({ x: 0, y: 0 });
 
   useFrame((state, delta) => {
-    if (!mesh.current || !animate) return;
-    mesh.current.rotation.x += delta * 0.12;
-    mesh.current.rotation.y += delta * 0.17;
-    pointer.current.x += (state.pointer.x - pointer.current.x) * 0.05;
-    pointer.current.y += (state.pointer.y - pointer.current.y) * 0.05;
-    mesh.current.rotation.z = pointer.current.x * 0.35;
-    mesh.current.position.y = pointer.current.y * 0.3;
+    if (!animate) return;
+    if (mesh.current) {
+      mesh.current.rotation.x += delta * 0.1;
+      mesh.current.rotation.y += delta * 0.15;
+    }
+    if (group.current) {
+      eased.current.x += (state.pointer.x - eased.current.x) * 0.06;
+      eased.current.y += (state.pointer.y - eased.current.y) * 0.06;
+      group.current.position.x = eased.current.x * 1.1;
+      group.current.position.y = eased.current.y * 0.7;
+      group.current.rotation.y = eased.current.x * 0.45;
+      group.current.rotation.x = -eased.current.y * 0.35;
+    }
   });
 
   return (
-    <Float speed={animate ? 1.4 : 0} rotationIntensity={0.4} floatIntensity={0.8}>
-      <mesh ref={mesh} scale={1.18}>
-        <torusKnotGeometry args={mobile ? [1, 0.32, 128, 24] : [1, 0.32, 240, 40]} />
-        <meshPhysicalMaterial
-          color="#8d8378"
-          metalness={1}
-          roughness={0.16}
-          clearcoat={1}
-          clearcoatRoughness={0.25}
-          envMapIntensity={1.4}
-        />
-      </mesh>
-    </Float>
+    <group ref={group}>
+      <Float speed={animate ? 1.3 : 0} rotationIntensity={0.35} floatIntensity={0.7}>
+        <mesh ref={mesh} scale={mobile ? 1.05 : 1.35} position={[0, 0.15, -0.5]}>
+          <torusKnotGeometry args={mobile ? [1, 0.3, 128, 24] : [1, 0.3, 240, 40]} />
+          <meshPhysicalMaterial
+            color="#8d8378"
+            metalness={1}
+            roughness={0.16}
+            clearcoat={1}
+            clearcoatRoughness={0.25}
+            envMapIntensity={1.4}
+          />
+        </mesh>
+      </Float>
+    </group>
   );
 }
 
@@ -85,15 +99,15 @@ export default function HeroScene() {
 
   return (
     <Canvas
-      camera={{ position: [0, 0, 5.4], fov: 38 }}
+      camera={{ position: [0, 0, 6.5], fov: 42 }}
       dpr={[1, 1.6]}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       style={{ background: "transparent" }}
       aria-hidden
     >
       <Suspense fallback={null}>
-        <GlassKnot animate={animate} mobile={mobile} />
-        {!mobile && <Particles count={320} />}
+        <ChromeKnot animate={animate} mobile={mobile} />
+        {!mobile && <Particles count={360} />}
         {/* Local lightformer environment — vivid reflections, no network HDR. */}
         <Environment resolution={256}>
           <Lightformer intensity={3} position={[4, 2, 3]} scale={[6, 4, 1]} color="#ff8a52" />

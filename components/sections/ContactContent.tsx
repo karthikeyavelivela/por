@@ -82,7 +82,7 @@ export default function ContactContent() {
                 suppressHydrationWarning
               >
                 {time}{" "}
-                <span className="text-sm font-normal text-(--muted)">IST — Vijayawada</span>
+                <span className="text-sm font-normal text-(--muted)">IST</span>
               </p>
               <p className="mt-2 text-sm text-(--muted)">Usually replies within a day.</p>
             </div>

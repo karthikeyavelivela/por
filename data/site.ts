@@ -3,9 +3,8 @@ export const SITE = {
   title: "Application Security Engineer & Founder",
   url: "https://karthikeyavelivela.vercel.app",
   email: "velivelakarthikeya@gmail.com",
-  location: "Vijayawada, India",
   description:
-    "Application Security Engineer & Founder — building FYRO, red-teaming LLMs, and shipping products from Vijayawada, India.",
+    "Application Security Engineer & Founder — building FYRO, red-teaming LLMs, and shipping products people use.",
 };
 
 export const SOCIALS = [

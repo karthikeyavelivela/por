@@ -14,9 +14,9 @@ const LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
+/** Floating pill nav — detached glass capsule, active link carries an ink pill. */
 export default function Nav() {
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
   const lastY = useRef(0);
@@ -24,7 +24,6 @@ export default function Nav() {
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
-      setScrolled(y > 40);
       setHidden(y > 300 && y > lastY.current && !open);
       lastY.current = y;
     };
@@ -40,80 +39,85 @@ export default function Nav() {
   return (
     <>
       <motion.header
-        animate={{ y: hidden ? "-100%" : "0%" }}
-        transition={{ duration: 0.5, ease: EASE_EXPO }}
-        className={cn(
-          "fixed inset-x-0 top-0 z-9700 transition-[background,border-color,backdrop-filter] duration-500",
-          scrolled && !open
-            ? "border-b backdrop-blur-[18px]"
-            : "border-b border-transparent"
-        )}
-        style={
-          scrolled && !open
-            ? { background: "var(--nav-bg)", borderColor: "var(--line)" }
-            : undefined
-        }
+        animate={{ y: hidden ? -90 : 0 }}
+        transition={{ duration: 0.55, ease: EASE_EXPO }}
+        className="fixed inset-x-0 top-4 z-9700 flex justify-center px-4 md:top-5"
       >
         <nav
           aria-label="Main navigation"
-          className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 md:px-10"
+          className="glass flex items-center gap-1 rounded-full p-1.5 pl-5 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5)]"
         >
           <Link href="/" aria-label="Karthikeya Velivela — home" onClick={() => setOpen(false)}>
-            <Logo />
+            <Logo className="text-xl" />
           </Link>
 
-          <div className="hidden items-center gap-10 md:flex">
-            {LINKS.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={cn(
-                  "u-draw text-sm font-medium tracking-wide transition-colors duration-300",
-                  pathname.startsWith(l.href)
-                    ? "text-(--ink)"
-                    : "text-(--muted) hover:text-(--ink)"
-                )}
-              >
-                {l.label}
-                {pathname.startsWith(l.href) && (
-                  <span aria-hidden className="ml-2 inline-block h-1 w-1 rounded-full align-middle" style={{ background: "var(--orange)" }} />
-                )}
-              </Link>
-            ))}
-            <Link
-              href="/contact"
-              className="glass rounded-full px-5 py-2.5 text-sm font-medium transition-colors duration-300 hover:text-(--orange)"
-              style={{ color: "var(--ink)" }}
-            >
-              Get in touch
-            </Link>
-            <ThemeToggle />
-          </div>
+          <div className="mx-2 hidden h-5 w-px md:block" style={{ background: "var(--line)" }} />
 
-          <div className="flex items-center gap-2 md:hidden">
-            <ThemeToggle />
-            <button
-              className="relative z-9800 flex h-11 w-11 flex-col items-center justify-center gap-[7px]"
+          <ul className="hidden items-center md:flex">
+            {LINKS.map((l) => {
+              const active = pathname.startsWith(l.href);
+              return (
+                <li key={l.href} className="relative">
+                  <Link
+                    href={l.href}
+                    className={cn(
+                      "relative block rounded-full px-4 py-2 text-sm font-medium transition-colors duration-300",
+                      active ? "text-(--bg)" : "text-(--muted) hover:text-(--ink)"
+                    )}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="nav-pill"
+                        className="absolute inset-0 rounded-full"
+                        style={{ background: "var(--ink)" }}
+                        transition={{ duration: 0.5, ease: EASE_EXPO }}
+                      />
+                    )}
+                    <span className="relative z-10">{l.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="mx-1 hidden h-5 w-px md:block" style={{ background: "var(--line)" }} />
+
+          <ThemeToggle className="flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-300 hover:bg-(--surface-2)" />
+
+          <Link
+            href="/contact"
+            className="group relative ml-1 hidden overflow-hidden rounded-full px-5 py-2.5 text-sm font-medium md:block"
+            style={{ background: "var(--orange)", color: "#0B0A08" }}
+          >
+            <span
+              aria-hidden
+              className="absolute inset-0 origin-bottom scale-y-0 transition-transform duration-500 group-hover:scale-y-100"
+              style={{ background: "var(--grad)", transitionTimingFunction: "var(--ease)" }}
+            />
+            <span className="relative z-10">Let&apos;s talk</span>
+          </Link>
+
+          <button
+            className="relative z-9800 flex h-9 w-9 flex-col items-center justify-center gap-[6px] md:hidden"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
           >
             <span
               className={cn(
-                "h-px w-7 transition-transform duration-400",
-                open && "translate-y-1 rotate-45"
+                "h-px w-5 transition-transform duration-400",
+                open && "translate-y-[3.5px] rotate-45"
               )}
               style={{ background: "var(--ink)", transitionTimingFunction: "var(--ease)" }}
             />
             <span
               className={cn(
-                "h-px w-7 transition-transform duration-400",
-                open && "-translate-y-1 -rotate-45"
+                "h-px w-5 transition-transform duration-400",
+                open && "-translate-y-[3.5px] -rotate-45"
               )}
               style={{ background: "var(--ink)", transitionTimingFunction: "var(--ease)" }}
             />
-            </button>
-          </div>
+          </button>
         </nav>
       </motion.header>
 
@@ -164,7 +168,7 @@ export default function Nav() {
               transition={{ delay: 0.5 }}
               className="t-label mt-14 text-(--muted)"
             >
-              Vijayawada, IN — Open to opportunities
+              Open to opportunities
             </motion.p>
           </motion.div>
         )}

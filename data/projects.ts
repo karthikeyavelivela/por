@@ -9,6 +9,8 @@ export type Project = {
   year: string;
   categories: ProjectCategory[];
   featured: boolean;
+  /** Real cover screenshot — falls back to CSS-art when absent. */
+  image?: string;
   /** Cover hues + chip facts for the CSS-art cover. */
   hueA: string;
   hueB: string;
@@ -31,6 +33,7 @@ export const projects: Project[] = [
     year: "2025",
     categories: ["Product"],
     featured: true,
+    image: "https://res.cloudinary.com/dqwm8wgg8/image/upload/v1781151194/esntpd6kjueq61yo9sxv.png",
     hueA: "#FF6B2B",
     hueB: "#FFB347",
     chips: ["Live tracking · Socket.io", "4 roles · Multi-tenant"],
@@ -66,6 +69,7 @@ export const projects: Project[] = [
     year: "2026",
     categories: ["Product"],
     featured: true,
+    image: "https://res.cloudinary.com/dqwm8wgg8/image/upload/v1781151157/nzuvpj1pb62xnpnnftnr.png",
     hueA: "#17B8A6",
     hueB: "#0E7C70",
     chips: ["Rank 54 / 7,000", "Zero claims paperwork"],
@@ -133,6 +137,7 @@ export const projects: Project[] = [
     year: "2025",
     categories: ["Security", "Open source"],
     featured: true,
+    image: "https://res.cloudinary.com/dqwm8wgg8/image/upload/v1781151157/kjcthhsoemfw5hkmycmk.png",
     hueA: "#17B8A6",
     hueB: "#FF6B2B",
     chips: ["7 passive modules", "Zero packets to target"],

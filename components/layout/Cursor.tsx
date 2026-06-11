@@ -1,20 +1,21 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { gsap } from "@/lib/gsap";
 import { useFinePointer, usePrefersReducedMotion } from "@/lib/hooks";
 
+type Mode = "free" | "snap" | "view" | "drag";
+
 /**
- * Orange dot (instant) + ring (lerp 0.16, scale-based states, blend-difference
- * so it reads on any background). States: link → ring grows orange; view/drag
- * → ring fills ink with a label. Click squishes the ring. Hidden until the
- * first mousemove; never renders on touch / reduced-motion.
+ * Morphing cursor. Free: a small dot that squashes & stretches with
+ * velocity. Over links/buttons it snaps onto the element as a rounded
+ * highlight that drifts with the pointer. Over project covers/carousels it
+ * becomes a labelled disc ("View"/"Drag"). Desktop fine-pointers only.
  */
 export default function Cursor() {
   const fine = useFinePointer();
   const reduced = usePrefersReducedMotion();
-  const dotRef = useRef<HTMLDivElement>(null);
-  const ringRef = useRef<HTMLDivElement>(null);
-  const fillRef = useRef<HTMLDivElement>(null);
+  const elRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
   const enabled = fine && !reduced;
 
@@ -25,90 +26,165 @@ export default function Cursor() {
     }
     document.body.classList.add("has-cursor");
 
-    const pos = { x: -100, y: -100 };
-    const ring = { x: -100, y: -100 };
-    let scale = 1;
-    let targetScale = 1;
-    let pressScale = 1;
-    let state = "";
+    const el = elRef.current!;
+    const label = labelRef.current!;
+    const DOT = 12;
+
+    let mode: Mode = "free";
+    let snapTarget: HTMLElement | null = null;
+    let snapRect: DOMRect | null = null;
     let shown = false;
+
+    // smoothed position + velocity for the free-mode stretch
+    const pos = { x: -100, y: -100 };
+    const smooth = { x: -100, y: -100 };
     let raf = 0;
 
-    const applyState = (next: string) => {
-      if (next === state) return;
-      state = next;
-      const ringEl = ringRef.current;
-      const fillEl = fillRef.current;
-      const labelEl = labelRef.current;
-      if (!ringEl || !fillEl || !labelEl) return;
+    gsap.set(el, { xPercent: -50, yPercent: -50, width: DOT, height: DOT, borderRadius: 999 });
 
-      if (next === "view" || next === "drag") {
-        targetScale = 2.4;
-        ringEl.style.borderColor = "transparent";
-        ringEl.style.mixBlendMode = "normal";
-        fillEl.style.opacity = "1";
-        labelEl.textContent = next === "view" ? "View" : "Drag";
-        labelEl.style.opacity = "1";
-      } else if (next === "link") {
-        targetScale = 1.7;
-        ringEl.style.borderColor = "var(--orange)";
-        ringEl.style.mixBlendMode = "normal";
-        fillEl.style.opacity = "0";
-        labelEl.style.opacity = "0";
-      } else {
-        targetScale = 1;
-        ringEl.style.borderColor = "rgba(155,148,138,0.7)";
-        ringEl.style.mixBlendMode = "difference";
-        fillEl.style.opacity = "0";
-        labelEl.style.opacity = "0";
-      }
+    const setFreeStyle = () => {
+      el.style.background = "var(--ink)";
+      el.style.border = "none";
+      el.style.mixBlendMode = "difference";
+      label.style.opacity = "0";
+    };
+    setFreeStyle();
+
+    const toFree = () => {
+      mode = "free";
+      snapTarget = null;
+      snapRect = null;
+      setFreeStyle();
+      gsap.to(el, {
+        width: DOT,
+        height: DOT,
+        borderRadius: 999,
+        duration: 0.4,
+        ease: "expo.out",
+      });
+    };
+
+    const toSnap = (target: HTMLElement) => {
+      mode = "snap";
+      snapTarget = target;
+      snapRect = target.getBoundingClientRect();
+      const radius = parseFloat(getComputedStyle(target).borderRadius) || 10;
+      el.style.mixBlendMode = "normal";
+      el.style.background = "transparent";
+      el.style.border = "1.5px solid var(--orange)";
+      label.style.opacity = "0";
+      gsap.to(el, {
+        width: snapRect.width + 12,
+        height: snapRect.height + 12,
+        borderRadius: Math.min(radius + 6, (snapRect.height + 12) / 2),
+        scaleX: 1,
+        scaleY: 1,
+        rotate: 0,
+        duration: 0.45,
+        ease: "expo.out",
+      });
+    };
+
+    const toDisc = (kind: "view" | "drag") => {
+      mode = kind;
+      snapTarget = null;
+      snapRect = null;
+      el.style.mixBlendMode = "normal";
+      el.style.background = "var(--ink)";
+      el.style.border = "none";
+      label.textContent = kind === "view" ? "View" : "Drag";
+      label.style.opacity = "1";
+      gsap.to(el, {
+        width: 84,
+        height: 84,
+        borderRadius: 999,
+        scaleX: 1,
+        scaleY: 1,
+        rotate: 0,
+        duration: 0.45,
+        ease: "expo.out",
+      });
     };
 
     const onMove = (e: MouseEvent) => {
-      if (!shown) {
-        shown = true;
-        ring.x = e.clientX;
-        ring.y = e.clientY;
-        if (dotRef.current) dotRef.current.style.opacity = "1";
-        if (ringRef.current) ringRef.current.style.opacity = "1";
-      }
       pos.x = e.clientX;
       pos.y = e.clientY;
+      if (!shown) {
+        shown = true;
+        smooth.x = pos.x;
+        smooth.y = pos.y;
+        el.style.opacity = "1";
+      }
+
       const t = e.target as HTMLElement;
       const tagged = t.closest<HTMLElement>("[data-cursor]");
-      if (tagged) applyState(tagged.dataset.cursor ?? "");
-      else if (t.closest("a, button, [role=button], input, textarea, label")) applyState("link");
-      else applyState("");
-    };
+      const interactive = t.closest<HTMLElement>("a, button, [role=button]");
 
-    const onDown = () => {
-      pressScale = 0.82;
-    };
-    const onUp = () => {
-      pressScale = 1;
-    };
-    const onLeaveWindow = () => {
-      if (dotRef.current) dotRef.current.style.opacity = "0";
-      if (ringRef.current) ringRef.current.style.opacity = "0";
-      shown = false;
+      if (tagged?.dataset.cursor === "view") {
+        if (mode !== "view") toDisc("view");
+      } else if (tagged?.dataset.cursor === "drag") {
+        if (mode !== "drag") toDisc("drag");
+      } else if (interactive) {
+        if (snapTarget !== interactive) toSnap(interactive);
+      } else if (mode !== "free") {
+        toFree();
+      }
     };
 
     const loop = () => {
-      ring.x += (pos.x - ring.x) * 0.16;
-      ring.y += (pos.y - ring.y) * 0.16;
-      scale += (targetScale * pressScale - scale) * 0.18;
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate3d(${pos.x}px,${pos.y}px,0) translate(-50%,-50%) scale(${pressScale})`;
-      }
-      if (ringRef.current) {
-        ringRef.current.style.transform = `translate3d(${ring.x}px,${ring.y}px,0) translate(-50%,-50%) scale(${scale})`;
+      const dx = pos.x - smooth.x;
+      const dy = pos.y - smooth.y;
+      smooth.x += dx * 0.18;
+      smooth.y += dy * 0.18;
+
+      if (mode === "snap" && snapRect) {
+        // pin to the element with a slight magnetic drift toward the pointer
+        const cx = snapRect.left + snapRect.width / 2;
+        const cy = snapRect.top + snapRect.height / 2;
+        gsap.set(el, {
+          x: cx + (pos.x - cx) * 0.14,
+          y: cy + (pos.y - cy) * 0.14,
+          scaleX: 1,
+          scaleY: 1,
+          rotate: 0,
+        });
+      } else if (mode === "free") {
+        // squash & stretch along the velocity vector
+        const v = Math.min(Math.hypot(dx, dy), 80);
+        const stretch = 1 + v * 0.006;
+        const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+        gsap.set(el, {
+          x: smooth.x,
+          y: smooth.y,
+          rotate: angle,
+          scaleX: stretch,
+          scaleY: 1 / stretch,
+        });
+      } else {
+        gsap.set(el, { x: smooth.x, y: smooth.y, rotate: 0, scaleX: 1, scaleY: 1 });
       }
       raf = requestAnimationFrame(loop);
+    };
+
+    const onDown = () => {
+      gsap.to(el, { scale: 0.85, duration: 0.15, ease: "power2.out" });
+    };
+    const onUp = () => {
+      gsap.to(el, { scale: 1, duration: 0.35, ease: "back.out(2.5)" });
+    };
+    const onLeaveWindow = () => {
+      el.style.opacity = "0";
+      shown = false;
+    };
+    const onScroll = () => {
+      // element moved under us — re-measure or release
+      if (mode === "snap" && snapTarget) snapRect = snapTarget.getBoundingClientRect();
     };
 
     window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("mousedown", onDown);
     window.addEventListener("mouseup", onUp);
+    window.addEventListener("scroll", onScroll, { passive: true });
     document.documentElement.addEventListener("mouseleave", onLeaveWindow);
     raf = requestAnimationFrame(loop);
 
@@ -116,6 +192,7 @@ export default function Cursor() {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mousedown", onDown);
       window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("scroll", onScroll);
       document.documentElement.removeEventListener("mouseleave", onLeaveWindow);
       cancelAnimationFrame(raf);
       document.body.classList.remove("has-cursor");
@@ -127,23 +204,13 @@ export default function Cursor() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-9990">
       <div
-        ref={dotRef}
-        className="fixed left-0 top-0 h-[6px] w-[6px] rounded-full opacity-0 transition-opacity duration-200"
-        style={{ background: "var(--orange)" }}
-      />
-      <div
-        ref={ringRef}
-        className="fixed left-0 top-0 flex h-[38px] w-[38px] items-center justify-center rounded-full border opacity-0 transition-opacity duration-200 will-change-transform"
-        style={{ borderColor: "rgba(155,148,138,0.7)", mixBlendMode: "difference" }}
+        ref={elRef}
+        className="fixed left-0 top-0 flex items-center justify-center opacity-0 transition-opacity duration-200 will-change-transform"
+        style={{ background: "var(--ink)", mixBlendMode: "difference" }}
       >
-        <div
-          ref={fillRef}
-          className="absolute inset-0 rounded-full opacity-0 transition-opacity duration-300"
-          style={{ background: "var(--ink)" }}
-        />
         <span
           ref={labelRef}
-          className="relative z-10 text-[10px] font-semibold tracking-wide opacity-0 transition-opacity duration-200"
+          className="text-[11px] font-semibold tracking-wide opacity-0 transition-opacity duration-200"
           style={{ color: "var(--bg)" }}
         />
       </div>
