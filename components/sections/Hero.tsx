@@ -12,6 +12,8 @@ const HeroScene = dynamic(() => import("@/components/three/HeroScene"), {
   loading: () => <SceneFallback />,
 });
 
+const DotField = dynamic(() => import("@/components/three/DotField"), { ssr: false });
+
 /** Static poster while the canvas loads / for reduced-power paths. */
 function SceneFallback() {
   return (
@@ -55,6 +57,21 @@ function WordTicker() {
 export default function Hero() {
   return (
     <section className="relative flex min-h-svh items-center justify-center overflow-hidden">
+      {/* dot grid — premium base layer behind the 3D element, bulges toward the cursor */}
+      <div className="pointer-events-none absolute inset-0 opacity-70" aria-hidden>
+        <DotField
+          dotRadius={1.5}
+          dotSpacing={16}
+          bulgeStrength={60}
+          glowRadius={200}
+          cursorRadius={460}
+          bulgeOnly
+          gradientFrom="rgba(255, 107, 43, 0.34)"
+          gradientTo="rgba(23, 184, 166, 0.20)"
+          glowColor="rgba(255, 107, 43, 0.12)"
+        />
+      </div>
+
       {/* fullscreen 3D background — reacts to the cursor */}
       <div className="absolute inset-0" aria-hidden>
         <HeroScene />

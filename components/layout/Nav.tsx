@@ -11,6 +11,7 @@ import { cn, EASE_EXPO, EASE_QUART } from "@/lib/utils";
 const LINKS = [
   { href: "/work", label: "Work" },
   { href: "/about", label: "About" },
+  { href: "/eye", label: "Eye" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -45,7 +46,7 @@ export default function Nav() {
       >
         <nav
           aria-label="Main navigation"
-          className="glass flex items-center gap-1 rounded-full p-1.5 pl-5 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5)]"
+          className="glass-nav flex items-center gap-1 rounded-full p-1.5 pl-5"
         >
           <Link href="/" aria-label="Karthikeya Velivela — home" onClick={() => setOpen(false)}>
             <Logo className="text-xl" />
